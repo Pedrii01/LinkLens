@@ -363,6 +363,9 @@ async function connectDB() {
     }
 
     await dbConnectionPromise;
+    console.log(
+    "MongoDB connection state:",
+    mongoose.connection.readyState);
 }
 app.use(async (req, res, next) => {
     try {
