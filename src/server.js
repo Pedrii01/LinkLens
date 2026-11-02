@@ -87,7 +87,6 @@ app.post("/api/analyze", async (req, res) => {
             } catch (error) {
             }
         });
-
         const internalLinksArray = [...internalLinks];
         const externalLinksArray = [...externalLinks];
 
