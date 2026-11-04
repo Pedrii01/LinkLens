@@ -1,3 +1,5 @@
+
+console.log("SERVER.JS FILE EXECUTING");
 require("dotenv").config();
 
 const mongoose = require("mongoose");
@@ -315,6 +317,7 @@ const analysisData = {
     linkChecks: results
 };
 
+
 const savedAnalysis = await Analysis.create(analysisData);
 
 res.status(201).json({
@@ -332,6 +335,86 @@ res.status(201).json({
         message: error.message
     });
 }
+});
+
+console.log("HISTORY ROUTES REGISTERING");
+
+app.get("/api/history", async(req, res) => {
+    try {
+        const history = await Analysis.find({}).sort({ createdAt: -1 }).limit(10).lean();
+
+        res.status(200).json(history);
+    } catch (error) {
+        console.error("HISTORY ERROR", error);
+
+        res.status(500).json({
+            error: "Failed to fetch history",
+            message: error.message
+        });
+    }
+})
+
+app.get("/api/history/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                error: "Invalid analysis ID"
+            });
+        }
+
+        const analysis = await Analysis.findById(id);
+
+        if (!analysis) {
+            return res.status(404).json({
+                error: "Analysis not found"
+            });
+        }
+
+        return res.status(200).json(analysis);
+
+    } catch (error) {
+        console.error("HISTORY ERROR:", error);
+
+        return res.status(500).json({
+            error: "Failed to fetch analysis",
+            message: error.message
+        });
+    }
+});
+
+app.delete("/api/history/:id", async (req, res) =>{
+    try {
+        const id = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                error: "Invalid analysis ID"
+            });
+        }
+
+        const analysis = await Analysis.findByIdAndDelete(id);
+
+        if (!analysis) {
+            return res.status(404).json({
+                error: "Analysis not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Analysis deleted successfully"
+        });
+
+    } catch (error) {
+        console.error("HISTORY DELETE ERROR", error);
+
+        return res.status(500).json({
+            error: "Failed to delete analysis",
+            message: error.message
+        });
+    }
 });
 
 
