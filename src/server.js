@@ -336,47 +336,51 @@ res.status(201).json({
 
 
 
+
 let dbConnectionPromise;
 
-
 async function connectDB() {
-    if (mongoose.connection.readyState === 1) {
-        return;
-    }
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
 
-    console.log(
-        "MongoDB variable found:",
-        Boolean(process.env.MONGODB_URL)
-    );
+  console.log(
+    "MongoDB variable found:",
+    Boolean(process.env.MONGODB_URL)
+  );
 
-    if (!process.env.MONGODB_URL) {
-        throw new Error("MONGODB_URL is missing");
-    }
+  if (!process.env.MONGODB_URL) {
+    throw new Error("MONGODB_URL is missing");
+  }
 
-    if (!dbConnectionPromise) {
-        dbConnectionPromise = mongoose.connect(
-            process.env.MONGODB_URL
-        ).catch((error) => {
-            dbConnectionPromise = null;
-            throw error;
-        });
-    }
+  if (!dbConnectionPromise) {
+    dbConnectionPromise = mongoose
+      .connect(process.env.MONGODB_URL)
+      .catch((error) => {
+        dbConnectionPromise = null;
+        throw error;
+      });
+  }
 
-    await dbConnectionPromise;
-    console.log(
+  await dbConnectionPromise;
+
+  console.log(
     "MongoDB connection state:",
-    mongoose.connection.readyState);
+    mongoose.connection.readyState
+  );
 }
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (error) {
-        console.error("MongoDB connection failed:", error.message);
-        res.status(503).json({
-            error: "Database temporarily unavailable"
-        });
-    }
-});
+
+if (require.main === module) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error("MongoDB connection failed:", error.message);
+      process.exit(1);
+    });
+}
 
 module.exports = app;
