@@ -1,8 +1,44 @@
-import { useState } from "react";
+console.log("API URL:", import.meta.env.VITE_API_URL);
+
+import { useState, useEffect, useCallback } from "react";
 import CursorGlow from "./components/CursorGlow";
 import Magnetic from "./components/Magnetic";
 import BackgroundGrid from "./components/BackgroundGrid";
 import AnalysisLoader from "./components/AnalysisLoader";
+import HistorySection from "./components/HistorySection";
+
+const API_BASE = "http://localhost:3000";
+
+
+async function safeFetchJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const text = await response.text();
+
+    let data = null;
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            // Non-JSON response (e.g., HTML 404/504 gateway timeout from Vercel)
+            const snippet = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140);
+            throw new Error(
+                snippet
+                    ? `Server returned HTTP ${response.status}: ${snippet}`
+                    : `Server returned HTTP ${response.status} with invalid JSON.`
+            );
+        }
+    }
+
+    if (!response.ok) {
+        const errorMsg =
+            data?.message ||
+            data?.error ||
+            `Request failed with status ${response.status}`;
+        throw new Error(errorMsg);
+    }
+
+    return data;
+}
 
 function App() {
     const [url, setUrl] = useState("");
@@ -10,6 +46,32 @@ function App() {
     const [results, setResults] = useState(null);
     const [view, setView] = useState("seo");
     const [error, setError] = useState("");
+
+    // History state
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState("");
+    const [deletingId, setDeletingId] = useState(null);
+    const [fetchingHistoryId, setFetchingHistoryId] = useState(null);
+
+    const fetchHistory = useCallback(async () => {
+        setHistoryLoading(true);
+        setHistoryError("");
+
+        try {
+            const data = await safeFetchJson(`${API_BASE}/api/history`);
+            setHistory(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("Fetch history error:", err);
+            setHistoryError(err.message || "Failed to load scan history.");
+        } finally {
+            setHistoryLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchHistory();
+    }, [fetchHistory]);
 
     const analyzeWebsite = async (selectedView) => {
         if (!url.trim()) {
@@ -32,8 +94,8 @@ function App() {
         setResults(null);
 
         try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/analyze`,
+            const data = await safeFetchJson(
+                `${API_BASE}/api/analyze`,
                 {
                     method: "POST",
                     headers: {
@@ -45,20 +107,54 @@ function App() {
                 }
             );
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || "Failed to analyze website."
-                );
-            }
-
             setResults(data);
+            // Refresh history so the newly saved scan appears immediately
+            fetchHistory();
         } catch (error) {
             console.error("Analysis error:", error);
             setError(error.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSelectHistory = async (id) => {
+        setFetchingHistoryId(id);
+        setError("");
+
+        try {
+            const data = await safeFetchJson(`${API_BASE}/api/history/${id}`);
+            setResults(data);
+            // Scroll smoothly to top so results are in view
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (err) {
+            console.error("Load history scan error:", err);
+            setError(err.message || "Failed to retrieve scan details.");
+        } finally {
+            setFetchingHistoryId(null);
+        }
+    };
+
+    const handleDeleteHistory = async (id, domain) => {
+        const confirmed = window.confirm(
+            `Delete saved analysis for ${domain || "this website"}?`
+        );
+        if (!confirmed) return;
+
+        setDeletingId(id);
+
+        try {
+            await safeFetchJson(`${API_BASE}/api/history/${id}`, {
+                method: "DELETE"
+            });
+
+            // Optimistically or state-based update list
+            setHistory((prev) => prev.filter((item) => item._id !== id));
+        } catch (err) {
+            console.error("Delete history error:", err);
+            alert(`Could not delete scan: ${err.message}`);
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -70,103 +166,119 @@ function App() {
             {loading ? (
                 <AnalysisLoader url={url} />
             ) : !results ? (
-                <section className="hero">
-                    <p className="eyebrow">
-                        WEB INTELLIGENCE / 01
-                    </p>
-
-                    <h1>
-                        SEE WHAT'S
-                        <br />
-                        <span>BEHIND THE LINK.</span>
-                    </h1>
-
-                    <p className="subtitle">
-                        Inspect the structure and SEO health
-                        of any website.
-                    </p>
-
-                    <div className="url-box">
-                        <input
-                            type="text"
-                            value={url}
-                            onChange={(event) =>
-                                setUrl(event.target.value)
-                            }
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                    analyzeWebsite("seo");
-                                }
-                            }}
-                            placeholder="https://example.com"
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div className="analysis-options">
-                        <Magnetic strength={0.12}>
-                            <button
-                                className="analysis-option html-option"
-                                onClick={() =>
-                                    analyzeWebsite("html")
-                                }
-                            >
-                                <span className="option-number">
-                                    01
-                                </span>
-
-                                <span className="option-content">
-                                    <strong>HTML INFO</strong>
-                                    <small>
-                                        Inspect page structure,
-                                        links, assets & metadata
-                                    </small>
-                                </span>
-
-                                <span className="option-arrow">
-                                    ↗
-                                </span>
-                            </button>
-                        </Magnetic>
-
-                        <Magnetic strength={0.12}>
-                            <button
-                                className="analysis-option seo-option"
-                                onClick={() =>
-                                    analyzeWebsite("seo")
-                                }
-                            >
-                                <span className="option-number">
-                                    02
-                                </span>
-
-                                <span className="option-content">
-                                    <strong>SEO ANALYSIS</strong>
-                                    <small>
-                                        Check SEO health, issues
-                                        & optimization
-                                    </small>
-                                </span>
-
-                                <span className="option-arrow">
-                                    ↗
-                                </span>
-                            </button>
-                        </Magnetic>
-                    </div>
-
-                    {error && (
-                        <p className="error-message">
-                            {error}
+                <>
+                    <section className="hero">
+                        <p className="eyebrow">
+                            WEB INTELLIGENCE / 01
                         </p>
-                    )}
-                </section>
+
+                        <h1>
+                            SEE WHAT'S
+                            <br />
+                            <span>BEHIND THE LINK.</span>
+                        </h1>
+
+                        <p className="subtitle">
+                            Inspect the structure and SEO health
+                            of any website.
+                        </p>
+
+                        <div className="url-box">
+                            <input
+                                type="text"
+                                value={url}
+                                onChange={(event) =>
+                                    setUrl(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        analyzeWebsite("seo");
+                                    }
+                                }}
+                                placeholder="https://example.com"
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="analysis-options">
+                            <Magnetic strength={0.12}>
+                                <button
+                                    className="analysis-option html-option"
+                                    onClick={() =>
+                                        analyzeWebsite("html")
+                                    }
+                                >
+                                    <span className="option-number">
+                                        01
+                                    </span>
+
+                                    <span className="option-content">
+                                        <strong>HTML INFO</strong>
+                                        <small>
+                                            Inspect page structure,
+                                            links, assets & metadata
+                                        </small>
+                                    </span>
+
+                                    <span className="option-arrow">
+                                        ↗
+                                    </span>
+                                </button>
+                            </Magnetic>
+
+                            <Magnetic strength={0.12}>
+                                <button
+                                    className="analysis-option seo-option"
+                                    onClick={() =>
+                                        analyzeWebsite("seo")
+                                    }
+                                >
+                                    <span className="option-number">
+                                        02
+                                    </span>
+
+                                    <span className="option-content">
+                                        <strong>SEO ANALYSIS</strong>
+                                        <small>
+                                            Check SEO health, issues
+                                            & optimization
+                                        </small>
+                                    </span>
+
+                                    <span className="option-arrow">
+                                        ↗
+                                    </span>
+                                </button>
+                            </Magnetic>
+                        </div>
+
+                        {error && (
+                            <p className="error-message">
+                                {error}
+                            </p>
+                        )}
+                    </section>
+
+                    <HistorySection
+                        history={history}
+                        loading={historyLoading}
+                        error={historyError}
+                        onSelect={handleSelectHistory}
+                        onDelete={handleDeleteHistory}
+                        deletingId={deletingId}
+                        activeId={fetchingHistoryId}
+                    />
+                </>
             ) : (
                 <Results
                     data={results}
                     view={view}
                     setView={setView}
-                    onBack={() => setResults(null)}
+                    onBack={() => {
+                        setResults(null);
+                        // Refresh history when navigating back to landing
+                        fetchHistory();
+                    }}
                 />
             )}
         </main>

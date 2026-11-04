@@ -249,6 +249,348 @@ h1 span {
     line-height: 1.6;
 }
 
+/* History section */
+
+.history-section {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 80px 24px 140px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    background: linear-gradient(
+        180deg,
+        rgba(8, 8, 8, 0) 0%,
+        rgba(14, 14, 14, 0.6) 15%,
+        rgba(8, 8, 8, 0.95) 100%
+    );
+}
+
+.history-container {
+    width: min(1200px, 100%);
+    margin: 0 auto;
+}
+
+.history-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.history-title {
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.history-title span {
+    color: #666;
+}
+
+.history-subtitle {
+    max-width: 320px;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* History Grid */
+
+.history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+}
+
+/* History Card */
+
+.history-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 180px;
+    padding: 22px;
+    border: 1px solid #202020;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+        transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.45s ease,
+        border-color 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.history-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.history-card:hover {
+    border-color: #383838;
+    background: rgba(255, 255, 255, 0.045);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.history-card:focus-visible {
+    border-color: #777;
+}
+
+.history-card.active {
+    border-color: #605435;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Card Top */
+
+.history-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.history-card-domain-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.history-card-domain {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-card-date {
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 0.02em;
+}
+
+.history-delete-btn {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #555;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.history-delete-btn:hover:not(:disabled) {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.08);
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+.history-delete-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Card Title */
+
+.history-card-title {
+    margin: 18px 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #888;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* Card Footer */
+
+.history-card-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.history-card-score-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.history-card-score {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.history-card-score.score-high {
+    color: #f5f5f5;
+}
+
+.history-card-score.score-medium {
+    color: #dcdcdc;
+}
+
+.history-card-score.score-low {
+    color: #999;
+}
+
+.history-card-score.score-neutral {
+    color: #666;
+}
+
+.history-card-rating {
+    font-size: 11px;
+    color: #777;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.history-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-card-issues {
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 0.04em;
+}
+
+.history-card-arrow {
+    font-size: 14px;
+    color: #555;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.history-card:hover .history-card-arrow {
+    color: white;
+    transform: translate(2px, -2px);
+}
+
+/* States (Loading, Empty, Error) */
+
+.history-state {
+    padding: 60px 24px;
+    text-align: center;
+    border: 1px dashed #202020;
+    border-radius: 14px;
+    margin-top: 40px;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.history-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: #777;
+    font-size: 13px;
+}
+
+.history-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #2a2a2a;
+    border-top-color: #f5f5f5;
+    border-radius: 50%;
+    animation: historySpin 0.7s linear infinite;
+}
+
+@keyframes historySpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.history-error {
+    color: #ff6b6b;
+    font-size: 13px;
+}
+
+.history-empty-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #888;
+}
+
+.history-empty-desc {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #555;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .history-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .history-section {
+        padding: 60px 18px 100px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .history-card {
+        transition: none;
+        transform: none;
+        opacity: 1;
+    }
+
+    .history-card:hover {
+        transform: none;
+    }
+
+    .history-spinner {
+        animation: none;
+    }
+}
+
 .results-page {
     position: relative;
     z-index: 1;
