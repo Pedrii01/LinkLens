@@ -27,7 +27,7 @@ When building or auditing web pages, getting a rapid snapshot of what search eng
   - Sends asynchronous `HEAD` requests (with `GET` fallback on HTTP `405`) to test each link's health.
   - Detects broken links (`404` / `410`) and identifies redirected URLs.
 - **Automated Rule-Based SEO Scoring**:
-  - Calculates an SEO score (0–100) based on title presence/length, meta description completeness, single `<h1>` enforcement, image `alt` coverage, canonical tags, and HTTPS enforcement.
+  - Calculates SEO score (0–100) based on title presence/length, meta description completeness, single `<h1>` enforcement, image `alt` coverage, canonical tags, and HTTPS enforcement.(Not official metrics, just an implementation to showcase features)
   - Assigns categorical ratings: *Excellent*, *Good*, *Needs Improvement*, or *Poor*.
   - Compiles an actionable list of warnings and errors with specific guidance.
 - **Server Performance Measurement**: Captures upstream HTTP request roundtrip time (`responseTime` in milliseconds).
